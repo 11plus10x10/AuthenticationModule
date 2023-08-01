@@ -10,7 +10,6 @@ public sealed class AuthenticationModuleContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
-    public DbSet<EmailValidationStatus> EmailValidationStatuses { get; set; }
     public DbSet<Save> Saves { get; set; }
     public DbSet<Game> Games { get; set; }
 }

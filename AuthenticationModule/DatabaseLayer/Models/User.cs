@@ -7,5 +7,6 @@ public class User
     public string PasswordHash { get; set; }
     public string PasswordSalt { get; set; }
     public string ConfirmationToken { get; set; }
-    public int EmailValidationStatusId { get; set; }
+    
+    public bool IsEmailValidated { get; set; }
 }

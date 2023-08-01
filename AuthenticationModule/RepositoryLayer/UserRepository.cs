@@ -19,14 +19,12 @@ public class UserRepository : IRepository
         string email,
         string passwordHash,
         string passwordSalt,
-        string confirmationToken,
-        int emailValidationStatusId)
+        string confirmationToken)
     {
         if (string.IsNullOrWhiteSpace(email)
             || string.IsNullOrWhiteSpace(passwordHash)
             || string.IsNullOrWhiteSpace(passwordSalt)
-            || string.IsNullOrWhiteSpace(confirmationToken)
-            || emailValidationStatusId.IsNegative())
+            || string.IsNullOrWhiteSpace(confirmationToken))
         {
             throw new ArgumentException();
         }
@@ -37,7 +35,7 @@ public class UserRepository : IRepository
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt,
             ConfirmationToken = confirmationToken,
-            EmailValidationStatusId = emailValidationStatusId
+            IsEmailValidated = false,
         };
 
         try
@@ -64,6 +62,14 @@ public class UserRepository : IRepository
                ?? throw new UserNotFoundException();
     }
 
+    public async Task<User> GetUserById(int userId)
+    {
+        if (userId.IsNegative()) throw new ArgumentException();
+
+        return await Context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+               ?? throw new UserNotFoundException();
+    }
+
     public async Task UpdatePasswordHash(int userId, string newPasswordHash)
     {
         if (userId.IsNegative() || string.IsNullOrWhiteSpace(newPasswordHash))
@@ -73,7 +79,8 @@ public class UserRepository : IRepository
 
         var userUpdateResult = await Context.Users
             .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.PasswordHash, newPasswordHash));
+            .ExecuteUpdateAsync(setters
+                => setters.SetProperty(p => p.PasswordHash, newPasswordHash));
 
         if (userUpdateResult == 0) throw new CouldNotUpdateUser();
     }
@@ -93,11 +100,15 @@ public class UserRepository : IRepository
         if (userUpdateResult == 0) throw new CouldNotUpdateUser();
     }
 
-    public async Task<User> GetUserById(int userId)
+    public async Task UpdateIsEmailValidated(int userId)
     {
         if (userId.IsNegative()) throw new ArgumentException();
 
-        return await Context.Users.FirstOrDefaultAsync(u => u.Id == userId)
-               ?? throw new UserNotFoundException();
+        var updatedEmailStatus = await Context.Users
+            .Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(setters
+                => setters.SetProperty(u => u.IsEmailValidated, true));
+
+        if (updatedEmailStatus == 0) throw new CouldNotUpdateEmailValidationStatus();
     }
 }
