@@ -15,19 +15,17 @@ public class UserRepository : IRepository
         Context = context;
     }
 
-    public async Task<bool> CreateUser(
+    public async Task CreateUser(
         string email,
         string passwordHash,
         string passwordSalt,
         string confirmationToken,
-        DateTime tokenGenerationTime,
         int emailValidationStatusId)
     {
         if (string.IsNullOrWhiteSpace(email)
             || string.IsNullOrWhiteSpace(passwordHash)
             || string.IsNullOrWhiteSpace(passwordSalt)
             || string.IsNullOrWhiteSpace(confirmationToken)
-            || tokenGenerationTime == DateTime.MinValue
             || emailValidationStatusId.IsNegative())
         {
             throw new ArgumentException();
@@ -39,7 +37,6 @@ public class UserRepository : IRepository
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt,
             ConfirmationToken = confirmationToken,
-            TokenGenerationTime = tokenGenerationTime,
             EmailValidationStatusId = emailValidationStatusId
         };
 
@@ -53,8 +50,6 @@ public class UserRepository : IRepository
             Console.WriteLine($"Exception during database query: {e.Message}");
             throw new CouldNotAddUserToDatabaseException();
         }
-
-        return true;
     }
 
     public async Task<User> GetUserByEmail(string email)
@@ -83,9 +78,9 @@ public class UserRepository : IRepository
         return result == 1;
     }
 
-    public async Task<bool> UpdateConfirmationToken(int userId)
+    public async Task<bool> UpdateConfirmationToken(int userId, string newConfirmationToken)
     {
-        if (userId.IsNegative())
+        if (userId.IsNegative() || string.IsNullOrWhiteSpace(newConfirmationToken))
         {
             throw new ArgumentException();
         }
@@ -93,7 +88,7 @@ public class UserRepository : IRepository
         var result = await Context.Users
             .Where(u => u.Id == userId)
             .ExecuteUpdateAsync(s
-                => s.SetProperty(u => u.TokenGenerationTime, DateTime.UtcNow));
+                => s.SetProperty(u => u.ConfirmationToken, newConfirmationToken));
 
         return result == 1;
     }

@@ -1,6 +1,5 @@
 using AuthenticationModule.DatabaseLayer;
 using AuthenticationModule.DatabaseLayer.Models;
-using AuthenticationModule.RepositoryLayer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -20,14 +19,18 @@ public class TestDatabaseFixture
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
             context.AddRange(
-                new User { Id = 0, EmailAddress = "pacan@gmail.com", PasswordHash = "!@#", PasswordSalt = "123", ConfirmationToken = "token", TokenGenerationTime = DateTime.UtcNow, EmailValidationStatusId = 0 },
+                new User
+                {
+                    Id = 0, EmailAddress = "pacan@gmail.com", PasswordHash = "!@#", PasswordSalt = "123",
+                    ConfirmationToken = "token", EmailValidationStatusId = 0
+                },
                 new Game { Id = 0, GameName = "Minesweeper" },
                 new EmailValidationStatus { Id = 0, UserId = 0, ValidationStatus = true });
             context.SaveChanges();
             _databaseInitialized = true;
         }
     }
-    
+
     public AuthenticationModuleContext CreateContext()
     {
         var config = new ConfigurationBuilder()
@@ -35,7 +38,7 @@ public class TestDatabaseFixture
             .Build();
 
         var connectionString = config["Data:DefaultConnection:ConnectionString"];
-        
+
         var options = new DbContextOptionsBuilder<AuthenticationModuleContext>()
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention();

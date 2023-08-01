@@ -82,18 +82,27 @@ public class UserRepositoryTests : IClassFixture<TestDatabaseFixture>
         //  Beginning transaction so no test data goes into DB.
         await context.Database.BeginTransactionAsync();
 
-        var result = await _repository.CreateUser(
-            "baklan@gmail.com",
-            "noHash",
-            "noSalt",
-            "token",
-            DateTime.UtcNow,
-            1);
+        var user = new User
+        {
+            Id = 2,
+            EmailAddress = "baklan@gmail.com",
+            PasswordHash = "noHash",
+            PasswordSalt = "noSalt",
+            ConfirmationToken = "token",
+            EmailValidationStatusId = 1,
+        };
+        await _repository.CreateUser(
+            user.EmailAddress,
+            user.PasswordHash,
+            user.PasswordSalt,
+            user.ConfirmationToken,
+            user.EmailValidationStatusId);
 
         //  Clearing the effect of _repository.CreateUser();
         context.ChangeTracker.Clear();
 
-        Assert.True(result);
+        var userInDb = await context.Users.FirstOrDefaultAsync(u => u.EmailAddress == "baklan@gmail.com");
+        Assert.Equivalent(user, userInDb);
     }
 
     public static IEnumerable<object[]> GetUserWithBadFields()
@@ -103,32 +112,32 @@ public class UserRepositoryTests : IClassFixture<TestDatabaseFixture>
             new User
             {
                 EmailAddress = "", PasswordHash = "123", PasswordSalt = "123", ConfirmationToken = "123",
-                TokenGenerationTime = DateTime.UtcNow, EmailValidationStatusId = 2
+                EmailValidationStatusId = 2
             },
             new User
             {
                 EmailAddress = "gnilushka@gmail.com", PasswordHash = "", PasswordSalt = "123",
-                ConfirmationToken = "123", TokenGenerationTime = DateTime.UtcNow, EmailValidationStatusId = 2
+                ConfirmationToken = "123", EmailValidationStatusId = 2
             },
             new User
             {
                 EmailAddress = "pollogrande@gmail.com", PasswordHash = "123", PasswordSalt = "",
-                ConfirmationToken = "123", TokenGenerationTime = DateTime.UtcNow, EmailValidationStatusId = 2
+                ConfirmationToken = "123", EmailValidationStatusId = 2
             },
             new User
             {
                 EmailAddress = "cucumber@gmail.com", PasswordHash = "123", PasswordSalt = "123", ConfirmationToken = "",
-                TokenGenerationTime = DateTime.UtcNow, EmailValidationStatusId = 2
+                EmailValidationStatusId = 2
             },
             new User
             {
                 EmailAddress = "coocnut@gmail.com", PasswordHash = "", PasswordSalt = "123", ConfirmationToken = "123",
-                TokenGenerationTime = DateTime.MinValue, EmailValidationStatusId = 2
+                EmailValidationStatusId = 2
             },
             new User
             {
                 EmailAddress = "vectorpacan@gmail.com", PasswordHash = "", PasswordSalt = "123",
-                ConfirmationToken = "123", TokenGenerationTime = DateTime.UtcNow, EmailValidationStatusId = -1
+                ConfirmationToken = "123", EmailValidationStatusId = -1
             },
         };
     }
@@ -141,32 +150,32 @@ public class UserRepositoryTests : IClassFixture<TestDatabaseFixture>
         await Assert.ThrowsAsync<ArgumentException>(async ()
             => await _repository.CreateUser(userWithEmptyMail.EmailAddress, userWithEmptyMail.PasswordHash,
                 userWithEmptyMail.PasswordSalt, userWithEmptyMail.ConfirmationToken,
-                userWithEmptyMail.TokenGenerationTime, userWithEmptyMail.EmailValidationStatusId));
+                userWithEmptyMail.EmailValidationStatusId));
 
         await Assert.ThrowsAsync<ArgumentException>(async ()
             => await _repository.CreateUser(userWithEmptyHash.EmailAddress, userWithEmptyHash.PasswordHash,
                 userWithEmptyHash.PasswordSalt, userWithEmptyHash.ConfirmationToken,
-                userWithEmptyHash.TokenGenerationTime, userWithEmptyHash.EmailValidationStatusId));
+                userWithEmptyHash.EmailValidationStatusId));
 
         await Assert.ThrowsAsync<ArgumentException>(async ()
             => await _repository.CreateUser(userWithEmptySalt.EmailAddress, userWithEmptySalt.PasswordHash,
                 userWithEmptySalt.PasswordSalt, userWithEmptySalt.ConfirmationToken,
-                userWithEmptySalt.TokenGenerationTime, userWithEmptySalt.EmailValidationStatusId));
+                userWithEmptySalt.EmailValidationStatusId));
 
         await Assert.ThrowsAsync<ArgumentException>(async ()
             => await _repository.CreateUser(userWithEmptyToken.EmailAddress, userWithEmptyToken.PasswordHash,
                 userWithEmptyToken.PasswordSalt, userWithEmptyToken.ConfirmationToken,
-                userWithEmptyToken.TokenGenerationTime, userWithEmptyToken.EmailValidationStatusId));
+                userWithEmptyToken.EmailValidationStatusId));
 
         await Assert.ThrowsAsync<ArgumentException>(async ()
             => await _repository.CreateUser(userWithBadTokenTime.EmailAddress, userWithBadTokenTime.PasswordHash,
                 userWithBadTokenTime.PasswordSalt, userWithBadTokenTime.ConfirmationToken,
-                userWithBadTokenTime.TokenGenerationTime, userWithBadTokenTime.EmailValidationStatusId));
+                userWithBadTokenTime.EmailValidationStatusId));
 
         await Assert.ThrowsAsync<ArgumentException>(async ()
             => await _repository.CreateUser(userWithNegativeStatusId.EmailAddress,
                 userWithNegativeStatusId.PasswordHash, userWithNegativeStatusId.PasswordSalt,
-                userWithNegativeStatusId.ConfirmationToken, userWithNegativeStatusId.TokenGenerationTime,
+                userWithNegativeStatusId.ConfirmationToken,
                 userWithNegativeStatusId.EmailValidationStatusId));
     }
 
@@ -192,15 +201,20 @@ public class UserRepositoryTests : IClassFixture<TestDatabaseFixture>
     [Fact]
     public async void UpdateConfirmationTokenSuccess()
     {
-        var result = await _repository.UpdateConfirmationToken(1);
+        var result = await _repository
+            .UpdateConfirmationToken(1, $"freshToken: {DateTime.Now.ToShortTimeString()}");
 
         Assert.True(result);
     }
 
-    [Fact]
-    public async void UpdateConfirmationTokenFailure()
+    [Theory]
+    [InlineData(-1, "")]
+    [InlineData(-1, null)]
+    [InlineData(1, "")]
+    [InlineData(1, null)]
+    public async void UpdateConfirmationTokenFailure(int userId, string newConfirmationToken)
     {
         await Assert.ThrowsAsync<ArgumentException>(async ()
-            => await _repository.UpdateConfirmationToken(-1));
+            => await _repository.UpdateConfirmationToken(userId, newConfirmationToken));
     }
 }
