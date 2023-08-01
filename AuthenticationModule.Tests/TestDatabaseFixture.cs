@@ -24,8 +24,9 @@ public class TestDatabaseFixture
                     Id = 0, EmailAddress = "pacan@gmail.com", PasswordHash = "!@#", PasswordSalt = "123",
                     ConfirmationToken = "token", EmailValidationStatusId = 0
                 },
-                new Game { Id = 0, GameName = "Minesweeper" },
-                new EmailValidationStatus { Id = 0, UserId = 0, ValidationStatus = true });
+                new Game { GameName = "Minesweeper" },
+                new EmailValidationStatus { Id = 0, UserId = 0, ValidationStatus = true },
+                new Save { UserId = 1, GameId = 1, SaveName = "InitialSave", SaveData = "InitialData"});
             context.SaveChanges();
             _databaseInitialized = true;
         }

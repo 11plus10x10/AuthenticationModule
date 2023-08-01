@@ -64,33 +64,33 @@ public class UserRepository : IRepository
                ?? throw new UserNotFoundException();
     }
 
-    public async Task<bool> UpdatePassword(int userId, string newPasswordHash)
+    public async Task UpdatePasswordHash(int userId, string newPasswordHash)
     {
         if (userId.IsNegative() || string.IsNullOrWhiteSpace(newPasswordHash))
         {
             throw new ArgumentException();
         }
 
-        var result = await Context.Users
+        var userUpdateResult = await Context.Users
             .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(user => user.SetProperty(p => p.PasswordHash, newPasswordHash));
+            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.PasswordHash, newPasswordHash));
 
-        return result == 1;
+        if (userUpdateResult == 0) throw new CouldNotUpdateUser();
     }
 
-    public async Task<bool> UpdateConfirmationToken(int userId, string newConfirmationToken)
+    public async Task UpdateConfirmationToken(int userId, string newConfirmationToken)
     {
         if (userId.IsNegative() || string.IsNullOrWhiteSpace(newConfirmationToken))
         {
             throw new ArgumentException();
         }
 
-        var result = await Context.Users
+        var userUpdateResult = await Context.Users
             .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(s
-                => s.SetProperty(u => u.ConfirmationToken, newConfirmationToken));
+            .ExecuteUpdateAsync(setters
+                => setters.SetProperty(u => u.ConfirmationToken, newConfirmationToken));
 
-        return result == 1;
+        if (userUpdateResult == 0) throw new CouldNotUpdateUser();
     }
 
     public async Task<User> GetUserById(int userId)

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AuthenticationModule.Tests.RepositoryLayer;
 
-public class UserRepositoryTests : IClassFixture<TestDatabaseFixture>
+public class UserRepositoryTests : IClassFixture<TestDatabaseFixture>, ITestClass
 {
     public TestDatabaseFixture Fixture { get; }
     private readonly UserRepository _repository;
@@ -181,30 +181,34 @@ public class UserRepositoryTests : IClassFixture<TestDatabaseFixture>
 
 
     [Fact]
-    public async void UpdatePasswordSuccess()
+    public async void UpdatePasswordHashSuccess()
     {
-        var result = await _repository.UpdatePassword(1, "miel");
-
-        Assert.True(result);
+        const string newPasswordHash = "miel";
+        await _repository.UpdatePasswordHash(1, newPasswordHash);
+        var userInDb = await _repository.GetUserById(1);
+        Assert.Equal(newPasswordHash, userInDb.PasswordHash);
     }
 
     [Theory]
     [InlineData(-1, "666")]
     [InlineData(1, "")]
     [InlineData(1, null)]
-    public async void UpdatePasswordFailure(int userId, string newPasswordHash)
+    public async void UpdatePasswordHashFailure(int userId, string newPasswordHash)
     {
         await Assert.ThrowsAsync<ArgumentException>(async ()
-            => await _repository.UpdatePassword(userId, newPasswordHash));
+            => await _repository.UpdatePasswordHash(userId, newPasswordHash));
     }
 
     [Fact]
     public async void UpdateConfirmationTokenSuccess()
     {
-        var result = await _repository
-            .UpdateConfirmationToken(1, $"freshToken: {DateTime.Now.ToShortTimeString()}");
+        var newConfirmationToken = $"freshToken: {DateTime.Now.ToShortTimeString()}";
+        await _repository
+            .UpdateConfirmationToken(1, newConfirmationToken);
 
-        Assert.True(result);
+        var userInDb = await _repository.GetUserById(1);
+
+        Assert.Equal(newConfirmationToken, userInDb.ConfirmationToken);
     }
 
     [Theory]
