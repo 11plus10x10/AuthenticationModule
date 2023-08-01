@@ -8,9 +8,6 @@ namespace AuthenticationModule.RepositoryLayer;
 
 public class UserRepository : IRepository
 {
-    // public UserRepository(AuthenticationModuleContext context) : base(context)
-    // {
-    // }
     public AuthenticationModuleContext Context { get; }
 
     public UserRepository(AuthenticationModuleContext context)
@@ -83,7 +80,7 @@ public class UserRepository : IRepository
             .Where(u => u.Id == userId)
             .ExecuteUpdateAsync(user => user.SetProperty(p => p.PasswordHash, newPasswordHash));
 
-        return result == 1 ? true : false;
+        return result == 1;
     }
 
     public async Task<bool> UpdateConfirmationToken(int userId)
@@ -96,7 +93,7 @@ public class UserRepository : IRepository
         var result = await Context.Users
             .Where(u => u.Id == userId)
             .ExecuteUpdateAsync(s
-                => s.SetProperty(u => u.TokenGenerationTime, new DateTime()));
+                => s.SetProperty(u => u.TokenGenerationTime, DateTime.UtcNow));
 
         return result == 1;
     }
@@ -104,7 +101,7 @@ public class UserRepository : IRepository
     public async Task<User> GetUserById(int userId)
     {
         if (userId.IsNegative()) throw new ArgumentException();
-        
+
         return await Context.Users.FirstOrDefaultAsync(u => u.Id == userId)
                ?? throw new UserNotFoundException();
     }
