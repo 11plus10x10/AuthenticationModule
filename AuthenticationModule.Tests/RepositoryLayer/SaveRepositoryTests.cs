@@ -77,9 +77,43 @@ public class SaveRepositoryTests : IClassFixture<TestDatabaseFixture>, ITestClas
         var date = DateTime.Now.ToShortTimeString();
         await _repository.UpdateSaveName(1, $"freshSave: {date}");
         await using var context = Fixture.CreateContext();
-        var save = await context.Saves.FirstOrDefaultAsync(s => s.Id == 1);
-        Assert.NotNull(save);
+        var saveInDb = await context.Saves.FirstOrDefaultAsync(s => s.Id == 1);
+        Assert.NotNull(saveInDb);
         
-        Assert.Equal($"freshSave: {date}", save.SaveName);
+        Assert.Equal($"freshSave: {date}", saveInDb.SaveName);
+    }
+
+    [Theory]
+    [InlineData(-1, "")]
+    [InlineData(-1, null)]
+    [InlineData(1, null)]
+    [InlineData(1, "")]
+    public async void UpdateSaveNameFailure(int saveId, string newSaveName)
+    {
+        await Assert.ThrowsAsync<ArgumentException>(async ()
+        => await _repository.UpdateSaveName(saveId, newSaveName));
+    }
+
+    [Fact]
+    public async void UpdateSaveDataSuccess()
+    {
+        var date = DateTime.Now.ToShortTimeString();
+        await _repository.UpdateSaveData(1, $"freshData: {date}");
+        await using var context = Fixture.CreateContext();
+        var saveInDb = await context.Saves.FirstOrDefaultAsync(s => s.Id == 1);
+        Assert.NotNull(saveInDb);
+        
+        Assert.Equal($"freshData: {date}", saveInDb.SaveData);
+    }
+
+    [Theory]
+    [InlineData(-1, "")]
+    [InlineData(-1, null)]
+    [InlineData(1, null)]
+    [InlineData(1, "")]
+    public async void UpdateSaveDataFailure(int saveId, string newSaveData)
+    {
+        await Assert.ThrowsAsync<ArgumentException>(async ()
+        => await _repository.UpdateSaveData(saveId, newSaveData));
     }
 }
