@@ -1,0 +1,15 @@
+@mixin font-size($size) {
+  font-size: toRem($size);
+}
+
+.app-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-card-switcher {
+  margin-bottom: 1rem;
+}

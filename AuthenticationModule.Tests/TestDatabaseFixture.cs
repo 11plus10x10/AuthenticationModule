@@ -19,11 +19,6 @@ public class TestDatabaseFixture
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
             context.AddRange(
-                new User
-                {
-                    EmailAddress = "pacan@gmail.com", PasswordHash = "!@#", PasswordSalt = "123",
-                    ConfirmationToken = "token", IsEmailValidated = true,
-                },
                 new Game { GameName = "Minesweeper" },
                 new Save { UserId = 1, GameId = 1, SaveName = "InitialSave", SaveData = "InitialData"});
             context.SaveChanges();

@@ -1,0 +1,14 @@
+<au-card [cardTitle]="signData.title">
+  <div class="card-input-wrapper">
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input [(ngModel)]="signData.email"
+             matInput
+             placeholder="example@email.com">
+    </mat-form-field>
+    <au-password label="Password"
+                 (newItemEvent)="onPasswordFieldInput($event)"></au-password>
+    <au-password label="Repeat password"
+                 (newItemEvent)="onRepeatPasswordFieldInput($event)"></au-password>
+  </div>
+</au-card>

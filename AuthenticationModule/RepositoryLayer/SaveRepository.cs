@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuthenticationModule.RepositoryLayer;
 
-public class SaveRepository : IRepository
+public class SaveRepository : IRepository, ISaveRepository
 {
     public AuthenticationModuleContext Context { get; }
 

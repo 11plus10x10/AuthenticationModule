@@ -1,0 +1,23 @@
+<div class="app-wrapper">
+  <div>
+    <mat-card class="app-card-switcher">
+      <mat-card-content>
+        <nav mat-tab-nav-bar [tabPanel]="tabPanel">
+          <span class="spacer"></span>
+          <a *ngFor="let link of links"
+             mat-tab-link
+             routerLink="{{link.routeLink}}"
+             (click)="activeLink = link.linkName"
+             [active]="activeLink === link.linkName">
+            {{link.linkName}}
+          </a>
+          <span class="spacer"></span>
+        </nav>
+      </mat-card-content>
+    </mat-card>
+    <mat-tab-nav-panel #tabPanel>
+      <router-outlet></router-outlet>
+    </mat-tab-nav-panel>
+  </div>
+</div>
+
