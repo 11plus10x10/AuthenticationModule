@@ -4,12 +4,14 @@
       <mat-card-content>
         <nav mat-tab-nav-bar [tabPanel]="tabPanel">
           <span class="spacer"></span>
-          <a *ngFor="let link of links"
+          <a *ngFor="let link of links | keyvalue"
              mat-tab-link
-             routerLink="{{link.routeLink}}"
-             (click)="activeLink = link.linkName"
-             [active]="activeLink === link.linkName">
-            {{link.linkName}}
+             routerLink="{{link.value.routeLink}}"
+             routerLinkActive
+             #rla="routerLinkActive"
+             (click)="activeLink = link.key.toString()"
+             [active]="rla.isActive">
+            {{link.value.linkName}}
           </a>
           <span class="spacer"></span>
         </nav>
